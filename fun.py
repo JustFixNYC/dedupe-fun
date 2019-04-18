@@ -1,7 +1,9 @@
 import os
+import pickle
 import psycopg2
 from pathlib import Path
 from psycopg2.extras import DictCursor
+import numpy as np
 import dedupe
 
 
@@ -10,6 +12,8 @@ MY_DIR = Path(__file__).parent.resolve()
 SETTINGS_PATH = MY_DIR / 'learned_settings'
 
 TRAINING_PATH = MY_DIR / 'training.json'
+
+DUPES_PATH = MY_DIR / 'dupes.bin'
 
 ZIPCODE = '11201'
 
@@ -88,6 +92,32 @@ def label_and_train(d_dict):
         deduper.writeSettings(sf)
 
 
+def get_the_freaking_minimum_index_and_score(scores):
+    # Sometimes 'scores' is a tuple, sometimes it's an ndarray, this API is ridiculous
+    minimum = scores[0]
+    minimum_index = 0
+    for i, score in enumerate(scores):
+        if score < minimum:
+            minimum = score
+            minimum_index = i
+    return minimum_index, minimum
+
+
+def print_dict(d):
+    dct = ' / '.join(
+        filter(None, [d['contactdescription'], d['corporationname'], d['title']]))
+    name = ' '.join(
+        filter(None, [d['firstname'], d['middleinitial'], d['lastname']]))
+    addr = ' '.join(
+        filter(None, [
+            d['businesshousenumber'], d['businessstreetname'], d['businessapartment'],
+            d['businesscity'], d['businessstate'], d['businesszip']
+        ]))
+    print(f"  desc: {dct}")
+    print(f"  name: {name}")
+    print(f"  addr: {addr}")
+
+
 def main():
     d_dict = load_dict()
     if SETTINGS_PATH.exists():
@@ -96,6 +126,29 @@ def main():
             deduper = dedupe.StaticDedupe(f)
     else:
         deduper = label_and_train(d_dict)
+
+    if not DUPES_PATH.exists():
+        threshold = deduper.threshold(d_dict, recall_weight=1)
+
+        print("Clustering...")
+        clustered_dupes = deduper.match(d_dict, threshold)
+
+        print(f"Writing {len(clustered_dupes)} duplicates to {DUPES_PATH.name}.")
+        DUPES_PATH.write_bytes(pickle.dumps(clustered_dupes))
+
+    clustered_dupes = pickle.loads(DUPES_PATH.read_bytes())
+
+    for cluster in clustered_dupes:
+        id_set, scores = cluster
+        cluster_dicts = [d_dict[c] for c in id_set]
+        min_index, min_score = get_the_freaking_minimum_index_and_score(scores)
+        lowest_score_dict = cluster_dicts[min_index]
+        canonical_rep = dedupe.canonicalize(cluster_dicts)
+        print(f"Found {len(cluster_dicts)} registrations for:")
+        print_dict(canonical_rep)
+        print(f"Least confident dupe ({min_score}) is:")
+        print_dict(lowest_score_dict)
+        input("Press enter for next cluster.")
 
 
 if __name__ == '__main__':
