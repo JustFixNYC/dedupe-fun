@@ -147,7 +147,7 @@ def main():
         min_index, min_score = get_the_freaking_minimum_index_and_score(scores)
         lowest_score_dict = cluster_dicts[min_index]
         canonical_rep = dedupe.canonicalize(cluster_dicts)
-        print(f"Found {len(cluster_dicts)} registrations for:")
+        print(f"\nFound {len(cluster_dicts)} registrations for:")
         print_dict(canonical_rep)
         print(f"Least confident dupe ({min_score}) is:")
         print_dict(lowest_score_dict)

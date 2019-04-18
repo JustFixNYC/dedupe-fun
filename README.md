@@ -19,6 +19,7 @@ source venv/bin/activate    # Or `venv\Scripts\activate` on Windows
 pip install -r requirements.txt
 nycdb --download hpd_registrations
 nycdb --load hpd_registrations
+python fun.py
 ```
 
 [dedupe]: https://github.com/dedupeio/dedupe
