@@ -1,5 +1,5 @@
 This is an experiment to see if [dedupe][] can help us
-deduplicate landlord information.
+deduplicate HPD registration contacts.
 
 ## Quick start
 
