@@ -1,1 +1,3 @@
 nycdb==0.1.21
+numpy>=1.9
+dedupe
