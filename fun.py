@@ -1,3 +1,6 @@
+# Much of this code is based on:
+# https://github.com/dedupeio/dedupe-examples/blob/master/csv_example/csv_example.py
+
 import os
 import pickle
 import psycopg2
