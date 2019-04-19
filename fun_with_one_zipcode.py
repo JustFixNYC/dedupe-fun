@@ -1,3 +1,5 @@
+# This attempts to find duplicates just for one zip code.
+
 # Much of this code is based on:
 # https://github.com/dedupeio/dedupe-examples/blob/master/csv_example/csv_example.py
 
@@ -12,11 +14,11 @@ import dedupe
 
 MY_DIR = Path(__file__).parent.resolve()
 
-SETTINGS_PATH = MY_DIR / 'learned_settings'
+SETTINGS_PATH = MY_DIR / 'one_zipcode_learned_settings'
 
-TRAINING_PATH = MY_DIR / 'training.json'
+TRAINING_PATH = MY_DIR / 'one_zipcode_training.json'
 
-DUPES_PATH = MY_DIR / 'dupes.bin'
+DUPES_PATH = MY_DIR / 'one_zipcode_dupes.bin'
 
 ZIPCODE = '11201'
 
