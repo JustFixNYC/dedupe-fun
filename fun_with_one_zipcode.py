@@ -138,7 +138,7 @@ def main():
         print("Clustering...")
         clustered_dupes = deduper.match(d_dict, threshold)
 
-        print(f"Writing {len(clustered_dupes)} duplicates to {DUPES_PATH.name}.")
+        print(f"Writing {len(clustered_dupes)} clusters to {DUPES_PATH.name}.")
         DUPES_PATH.write_bytes(pickle.dumps(clustered_dupes))
 
     clustered_dupes = pickle.loads(DUPES_PATH.read_bytes())
