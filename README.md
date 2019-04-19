@@ -19,7 +19,12 @@ source venv/bin/activate    # Or `venv\Scripts\activate` on Windows
 pip install -r requirements.txt
 nycdb --download hpd_registrations
 nycdb --load hpd_registrations
-python fun.py
+```
+
+To find the duplicates in one zip code, run:
+
+```
+python fun_with_one_zipcode.py
 ```
 
 [dedupe]: https://github.com/dedupeio/dedupe
