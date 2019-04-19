@@ -77,9 +77,13 @@ def to_dict(cur):
     return d
 
 
+def get_conn():
+    return psycopg2.connect(DATABASE_URL, cursor_factory=DictCursor)
+
+
 def load_dict():
     print("Loading data from database...")
-    with psycopg2.connect(DATABASE_URL, cursor_factory=DictCursor) as conn:
+    with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 f"select {', '.join(COLUMNS)} from hpd_contacts")
@@ -107,6 +111,8 @@ def label_and_train(d_dict):
     
     with SETTINGS_PATH.open('wb') as sf:
         deduper.writeSettings(sf)
+
+    deduper.cleanupTraining()
 
 
 def get_the_freaking_minimum_index_and_score(scores):
@@ -136,15 +142,34 @@ def print_dict(d):
 
 
 def main():
-    d_dict = load_dict()
     if SETTINGS_PATH.exists():
         print(f"Reading settings from {SETTINGS_PATH.name}.")
         with SETTINGS_PATH.open('rb') as f:
             deduper = dedupe.StaticDedupe(f)
     else:
+        d_dict = load_dict()
         deduper = label_and_train(d_dict)
+        del d_dict
 
-    print("TODO: Do blocking stuff!")
+    print("Blocking...")
+
+    with get_conn() as conn:
+        print("Creating blocking_map table...")
+        with conn.cursor() as cur:
+            cur.execute("drop table if exists blocking_map")
+            cur.execute(
+                f"create table blocking_map "
+                f"(block_key varchar(200), {PK_FIELD} integer)"
+            )
+
+        print("Creating inverted index...")
+        for field in deduper.blocker.index_fields:
+            with conn.cursor('field_cursor') as field_cursor:
+                field_cursor.execute(f"select distinct {field} from hpd_contacts")
+                field_data = (row[field] for row in field_cursor)
+                deduper.blocker.index(field_data, field)
+
+    print("TODO: Write blocking map!")
 
 
 if __name__ == '__main__':
